@@ -1,0 +1,76 @@
+{
+	"attacks": [
+		{
+			"name": "burst",
+			"type": ["missle"],
+			"description" : "A basic release of energy,\nrecovers 1 mana on hit",
+			"speed" : "2",
+			"art width" : "200",
+			"art height" : "200",
+			"warning time" : 200
+
+		},
+		{
+			"name": "spike",
+			"type": ["missle"],
+			"description" : "Fires a piercing round that\ngoes through 3 units",
+			"speed" : "9",
+			"art width" : "200",
+			"art height" : "200",
+			"warning time" : 400
+			
+
+		},
+		{
+			"name": "vampurst",
+			"type": ["return"],
+			"description" : "Fires a piercing round that\ngoes through 3 units",
+			"speed" : "4",
+			"art width" : "200",
+			"art height" : "200",
+			"warning time" : 800
+			
+
+		},
+		{
+			"name": "nuke_bomb",
+			"type": ["bomb"],
+			"description" : "boom!",
+			"speed" : "8",
+			"art width" : "200",
+			"art height" : "200",
+			"warning time" : 750
+			
+
+		},
+		{
+			"name": "lazzzer",
+			"type": ["beam"],
+			"description" : "zap",
+			"speed" : "8",
+			"art width" : "200",
+			"art height" : "200",
+			"warning time" : 750
+			
+
+		},
+		{
+			"name": "frost_shot",
+			"type": ["ghost"],
+			"description" : "zap",
+			"speed" : "1",
+			"art width" : "200",
+			"art height" : "200",
+			"warning time" : 750
+			
+
+		}
+
+
+	]
+	
+
+
+
+
+}

@@ -1,0 +1,96 @@
+{
+
+
+	"characters": [
+		{
+			"name":"spikey",
+			"health" : "12",
+			"attack" : "1",
+			"speed" : "10",
+			"type" : [],
+			"width" : "200",
+			"height" : "250",
+			"art width" : "200",
+			"art height" : "200"
+		},
+		{
+			"name":"bauli",
+			"health" : "12",
+			"attack" : "1",
+			"speed" : "10",
+			"type" : [],
+			"width" : "200",
+			"height" : "250",
+			"art width" : "200",
+			"art height" : "200"
+		},
+		{
+			"name":"beholder",
+			"health" : "12",
+			"attack" : "1",
+			"speed" : "10",
+			"type" : [],
+			"width" : "200",
+			"height" : "250",
+			"art width" : "200",
+			"art height" : "200"
+		},
+		{
+			"name":"carrion",
+			"health" : "12",
+			"attack" : "1",
+			"speed" : "10",
+			"type" : [],
+			"width" : "200",
+			"height" : "250",
+			"art width" : "200",
+			"art height" : "200"
+		},
+		{
+			"name":"rotiggu",
+			"health" : "12",
+			"attack" : "1",
+			"speed" : "10",
+			"type" : [],
+			"width" : "200",
+			"height" : "250",
+			"art width" : "200",
+			"art height" : "200"
+		},
+		{
+			"name":"spazz",
+			"health" : "12",
+			"attack" : "1",
+			"speed" : "10",
+			"type" : [],
+			"width" : "200",
+			"height" : "250",
+			"art width" : "200",
+			"art height" : "200"
+		},
+		{
+			"name":"bristlebush",
+			"health" : "12",
+			"attack" : "1",
+			"speed" : "10",
+			"type" : [],
+			"width" : "200",
+			"height" : "250",
+			"art width" : "200",
+			"art height" : "200"
+		},
+		{
+			"name":"the_island",
+			"health" : "12",
+			"attack" : "1",
+			"speed" : "10",
+			"type" : [],
+			"width" : "200",
+			"height" : "250",
+			"art width" : "200",
+			"art height" : "200"
+		}
+
+	]
+
+}

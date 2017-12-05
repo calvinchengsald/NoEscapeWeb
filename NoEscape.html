@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html>
+<style>
+
+    table {
+        font-family: arial, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+        margin-top: 5%;
+    }
+    td {
+        border: 2px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+    }
+    th >td{
+        font-style: italic;
+    }
+
+
+
+</style>
+
+<body onload = initialize()>
+
+    <button onclick = toggleRunning()> stop loop</button>
+    <button onclick = startGame() > start game</button>
+    <button onclick = "createRoom('room2')" > create room</button>
+    <br>
+    <canvas id="canvas" width="100" height="200" style="border:2px solid #0000ff;">
+    Your browser does not support the canvas element.
+    </canvas>
+    
+    <br>
+    <table id = "room_table">
+        <th>
+            <td>Room Name</td>
+            <td>Players</td>
+            <td>Info</td>
+        </th>
+    </table>
+    
+
+</body>
+
+
+
+
+<script src="https://www.gstatic.com/firebasejs/4.5.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/4.5.0/firebase-database.js"></script>
+<script src="common.js"></script>
+<script src="hitBox.js"></script>
+<script src="missle.js"></script>
+<script src="character.js"></script>
+<script src="room.js"></script>
+<script src="player.js"></script>
+<script>
+  
+    
+    var roomMap = new Map();
+    var currentRoom;
+    var currentPlayer;
+    var playerList = new Array;
+    var mainCharList = new Array;
+    var mainChar;
+    var missleList = new Array;
+    var MAX_MISSLE_COUNT = 25;
+    for(i = 0; i< MAX_MISSLE_COUNT; i++){
+        var dummyMissle = new Missle(i,"burst", "missle", EnumDirection.UP);
+        missleList[i] = dummyMissle;
+    }
+    
+    function getDeadMissle(){
+        for(i=0;i< missleList.length; i++){
+            if(missleList[i].dead){
+      //          console.log(i);
+                return i;
+            }
+        }
+        return -1;
+    }
+    function getMissleToSpawn(){
+        if ( Math.floor(totalSpawnTimer / spawnTimePerInterval) == 0 ){
+            return "vampurst";
+        } else if ( Math.floor(totalSpawnTimer / spawnTimePerInterval) == 1 ){
+            return "spike";
+        } else if ( Math.floor(totalSpawnTimer / spawnTimePerInterval) == 2 ){
+            return "burst";
+        } else if ( Math.floor(totalSpawnTimer / spawnTimePerInterval) == 3 ){
+            return "burst";
+        } else if ( Math.floor(totalSpawnTimer / spawnTimePerInterval) == 4 ){
+            return "vampurst";
+        }
+        else {
+            return missleNamesList[Math.floor( Math.random() * (missleNamesList.length))];
+        }
+    }
+    function mainCharAlive(){
+        for(i=0; i < mainCharList.length; i++){
+            if(!mainCharList[i].dead){
+                return true;
+            }
+        }
+        return false;
+    }
+    window.onkeyup = function (e) {
+        pressed = false; 
+    }
+    window.onkeydown = function (e) {
+        var code = e.keyCode ? e.keyCode : e.which;
+        if(code != lastPressedKey || pressed){
+            pressed = false;
+        }
+        if(pressed){return;}
+        pressed = true;
+        lastPressedKey = e;
+        if (code === 13) { //down key
+            startGame();
+        }
+    
+        if(!playing || mainChar.dead || mainChar.state==EnumEntityState.DYING ){return;}
+        if (code === 38) {
+            mainChar.move(EnumDirection.UP);
+        } else if (code === 40) { 
+            mainChar.move(EnumDirection.DOWN);
+        } else if (code === 39) {
+            mainChar.move(EnumDirection.RIGHT);
+        } else if (code === 37) { 
+            mainChar.move(EnumDirection.LEFT);
+        }
+        
+    };
+  	
+  	function initialize(){
+  		document.getElementById("canvas").width = canvasX;
+  		document.getElementById("canvas").height = canvasY;
+  		bluePaint.strokeStyle = "blue";
+  		fillPaint.fillStyle = "red";
+        currentPlayer = new Player();
+        // load rom file 
+        currentPlayer.name = "calvin";
+        
+        
+        totalSpawnTimer = 0;
+        spawnTimerMax = spawnTimerMaxMax;
+        spawnTimer= spawnTimerMax;
+        
+        
+        
+        
+        startGame();
+  		draw();
+  	
+  	}
+    
+    function startGame(){
+        for(i = 0; i < missleList.length; i++){
+            missleList[i].dead = true;
+        }
+        mainCharList = new Array;
+        mainChar= new Character("spazz");
+        mainCharList[0] = mainChar;
+        
+        spawnTimerMax = spawnTimerMaxMax;
+        spawnLevel = 1;
+        
+        isHost = true;
+        playing = true;
+        totalSpawnTimer = 0;
+    }
+  
+  
+    function update(dt){
+       // console.log("sd");
+        if(!playing){ return;}
+        
+        for(i = 0; i < missleList.length; i++){
+            missleList[i].update(dt);
+        }
+        for(i = 0; i < mainCharList.length; i++){
+            mainCharList[i].update(dt);
+        }
+        spawnTimer-=dt;
+        if(spawnTimer <= 0 && isHost){
+            spawnTimer += spawnTimerMax;
+            missleList[getDeadMissle()].setMissle(getMissleToSpawn());
+         //   console.log(" spawn a missle");
+            
+        }
+        
+        totalSpawnTimer+= dt;
+        if(totalSpawnTimer / spawnTimePerInterval >= spawnLevel){
+            spawnLevel++;
+            spawnTimerMax *= 0.9;
+            console.log("Spawn timer have been reduced to: " + spawnTimerMax);
+        }
+        
+        if(!mainCharAlive()){
+            playing = false;
+        }
+        
+        
+    }
+    function draw(){
+        bluePaint.clearRect(0, 0, canvas.width, canvas.height);
+        for(i = 0; i < boardDimension; i++){
+  		    for(j=0; j < boardDimension; j++){
+  			   bluePaint.rect( tileStartX, tileStartY, tileStartX+i*tileX, tileStartY+j*tileX);
+  		    }
+        }
+        
+        for(i = 0; i < missleList.length; i++){
+            missleList[i].draw(bluePaint);
+        }
+        for(i = 0; i < mainCharList.length; i++){
+            mainCharList[i].draw(bluePaint);
+        }
+        bluePaint.stroke();
+    }
+    
+    
+    
+    
+    var running = true;
+    var targetFPS = 25;
+    var targetLoopTime = 1000/targetFPS;
+    var loopCounter=0;
+    var lastStartLoopTime = 0;
+    var startLoopTime = 0;
+    var dt, fpsTimer=0;
+    var timeStamp;
+    function loop(timestamp) {
+        
+        
+        timeStamp = Date.now();
+        startLoopTime = timeStamp;
+        dt = startLoopTime - lastStartLoopTime;
+        lastStartLoopTime = startLoopTime;
+        
+        
+        update(dt);
+        draw();
+        loopCounter++;
+        fpsTimer+= dt;
+        if(fpsTimer > 1000){
+     //       console.log(loopCounter + "fps");
+            loopCounter = 0;
+            fpsTimer = 0;
+        }
+        
+        timeStamp = Date.now();
+        if(timeStamp-startLoopTime < targetLoopTime && running){
+               window.setTimeout(function(){window.requestAnimationFrame(loop)},(targetLoopTime-( timeStamp-startLoopTime)));
+        }
+        else {
+            if(running){
+                window.requestAnimationFrame(loop)
+            }
+        }
+        
+        
+    }
+    window.requestAnimationFrame(loop);
+    
+   
+    firebase.database().ref('rooms').on('child_added', function(snapshot) {
+        
+        console.log("called child added " + snapshot.key);
+        
+        var room = new Room();
+        roomMap.set(snapshot.key,room);
+        
+        snapshot.forEach(function(childSnapshot){
+            try{
+                if(childSnapshot.key == "players"){
+                    console.log("inside players " + childSnapshot.key);
+                    childSnapshot.forEach(function(childSnapshot){
+                        room.addPlayerNameList(childSnapshot.key);
+                    });
+                }
+            } 
+            catch (e){
+                console.log("problem in child added, could not find");
+            }
+        
+        });
+        console.log(roomMap.get("room0").getPlayerNameList().toString());
+        updateJoinRoomTable();
+    });
+    
+    firebase.database().ref('rooms').on('child_changed', function(snapshot) {
+        
+        console.log("called child changed " + snapshot.key);
+        
+        var room = roomMap.get(snapshot.key);
+        
+        snapshot.forEach(function(childSnapshot){
+            try{
+                if(childSnapshot.key == "players"){
+                    room.clearPlayerNameList();
+                    childSnapshot.forEach(function(childSnapshot){
+                        room.addPlayerNameList(childSnapshot.key);
+                    });
+                }
+            } 
+            catch (e){
+                console.log("problem in child added, could not find");
+                //if error finding something, delete room?
+            }
+        
+        });
+        console.log(roomMap.get("room0").getPlayerNameList().toString());
+    });
+    
+    firebase.database().ref('rooms').on('child_removed', function(snapshot) {
+        
+        console.log("called child removed " + snapshot.key);
+        
+        roomMap.remove(snapshot.key);
+        
+    });
+    
+    function createRoom(roomName){
+        
+        var playerPostData = {
+            character : "bauli"
+        }
+        var gamePostData = {
+            "game start" : "false"
+        }
+        
+        
+     //   firebase.database().ref 
+        /*
+        firebase.database().ref("rooms/"+roomName).set({
+         //   currentPlayer.name+"" : this.playerPostData
+            players : playersPostData
+            
+        });
+        */
+
+
+        var updates = {};
+        updates['rooms/' + roomName + "/" + "players" + "/" + currentPlayer.name] = this.playerPostData;
+        updates['rooms/' + roomName + "/" + "game data"] = gamePostData;
+        firebase.database().ref().update(updates);
+        
+    }
+    
+    
+    function updateJoinRoomTable(){
+        var table = document.getElementById("room_table");
+      //  for(var s: roomMap.keys){
+        roomMap.forEach(function(value, s, map){
+            
+            var refRow;
+            if(document.getElementById("room_row_"+s) != null){
+                refRow = document.getElementById("room_row_"+s);
+            }
+            else {
+                refRow = document.createElement("tr");
+                refRow.id = "room_row_"+s;
+                table.appendChild(refRow);
+            }
+            
+            var refNameCell, refPlayerCell, refInfoCell;
+            if(document.getElementById("room_cell_name_"+s) != null){
+                refNameCell = document.getElementById("room_cell_name_"+s);
+            }
+            else {
+                refNameCell = document.createElement("td");
+                refNameCell.id = "room_cell_name_"+s;
+            }
+        
+            if(document.getElementById("room_cell_player_"+s) != null){
+                refPlayerCell = document.getElementById("room_cell_player_"+s);
+            }
+            else {
+                refPlayerCell = document.createElement("td");
+                refPlayerCell.id = "room_cell_player_"+s;
+            }
+    
+            if(document.getElementById("room_cell_info_"+s) != null){
+                refInfoCell = document.getElementById("room_cell_info_"+s);
+            }
+            else {
+                refInfoCell = document.createElement("td");
+                refInfoCell.id = "room_cell_info_"+s;
+            }
+            
+            refNameCell.innerHTML = s;
+            refPlayerCell.innerHTML = roomMap.get(s).getPlayerNameList.length + "/8";
+            refInfoCell.innerHTML = "dummy info";
+            
+            refRow.appendChild(refNameCell);
+            refRow.appendChild(refPlayerCell);
+            refRow.appendChild(refInfoCell);
+            
+        });
+    }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  function toggleRunning(){
+      running = !running;
+      if(running){
+          window.requestAnimationFrame(loop)
+      }
+  }
+  
+  function setit(){
+  	document.getElementById("guessed").innerHTML = "heyo";
+  }
+  
+  function writeUserData() {
+  	firebase.database().ref("value").set({
+    	value  : 0,
+    	value1 : 1,
+    	value2 : 2
+  	});
+  }
+    
+  
+  
+</script>
+
+
+</html>
+
+
+
+
